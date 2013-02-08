@@ -4,6 +4,7 @@ defined('SYSPATH') or die('No direct script access.');
 
 /**
  * 
+ * @package Styler
  */
 class Styler {
 
@@ -17,7 +18,7 @@ class Styler {
         $this->html = $html;
         $this->css = $css;
         spl_autoload_register(array($this, "autoload"));
-        require_once Kohana::find_file("vendor", "simple_html_dom");
+        require_once Kohana::find_file("vendor", "simplehtmldom/simple_html_dom");
     }
 
     /**
@@ -25,7 +26,7 @@ class Styler {
      * @param type $class_name
      */
     public function autoload($class_name) {
-        require_once Kohana::find_file("vendor", str_replace("\\", "/", $class_name));
+        require_once Kohana::find_file("vendor/PHP-CSS-Parser/lib", str_replace("\\", "/", $class_name));
     }
 
     public function render() {
