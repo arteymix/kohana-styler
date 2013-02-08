@@ -4,7 +4,10 @@ defined('SYSPATH') or die('No direct script access.');
 
 /**
  * 
+ * @todo implémenter un système de cache
+ * 
  * @package Styler
+ * @author Guillaume Poirier-Morency
  */
 class Styler {
 
@@ -12,32 +15,47 @@ class Styler {
         return new Styler($html, $css);
     }
 
-    private $html, $css;
+    private $parsed_html, $parsed_css;
 
     public function __construct($html, $css) {
-        $this->html = $html;
-        $this->css = $css;
+
         spl_autoload_register(array($this, "autoload"));
         require_once Kohana::find_file("vendor", "simplehtmldom/simple_html_dom");
+
+        $this->html($html);
+        $this->css($css);
+    }
+
+    private function parse_html($content) {
+        return str_get_html($content);
+    }
+
+    private function parse_css($content) {
+
+        // Parse the css
+        $css_parser = new Sabberworm\CSS\Parser($content);
+
+        return $css_parser->parse();
+    }
+
+    public function html($content) {
+        $this->parsed_html = $this->parse_html($content);
+    }
+
+    public function css($content) {
+        $this->parsed_css = $this->parse_css($content);
     }
 
     /**
      * Namespace autoloader for vendor files
      * @param type $class_name
      */
-    public function autoload($class_name) {
+    private function autoload($class_name) {
         require_once Kohana::find_file("vendor/PHP-CSS-Parser/lib", str_replace("\\", "/", $class_name));
     }
 
-    public function render() {
-
-        // Parse the css
-        $css_parser = new Sabberworm\CSS\Parser($this->css);
-
-        // Looping through the document and applying rules
-        $parsed_html = str_get_html($this->html->render());
-
-        $declaration_blocks = $css_parser->parse()->getAllDeclarationBlocks();
+    private function apply() {
+        $declaration_blocks = $this->parsed_css->getAllDeclarationBlocks();
 
         foreach ($declaration_blocks as $declaration_block) {
 
@@ -46,14 +64,19 @@ class Styler {
             foreach ($declaration_block->getSelectors() as $selector) {
 
 
-                foreach ($parsed_html->find($selector) as $element) {
+                foreach ($this->parsed_html->find($selector) as $element) {
 
                     $element->style .= implode("", $declaration_block->getRules());
                 }
             }
         }
+    }
 
-        return $parsed_html;
+    public function render() {
+
+        $this->apply();
+
+        return $this->parsed_html;
     }
 
     public function __toString() {
