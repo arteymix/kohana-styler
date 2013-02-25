@@ -26,6 +26,7 @@ class Kohana_Styler  {
     public function __construct($html, $css) {
 
         spl_autoload_register(array($this, "autoload"));
+        
         require_once Kohana::find_file("vendor", "simplehtmldom/simple_html_dom");
 
         $this->html($html);
@@ -37,7 +38,9 @@ class Kohana_Styler  {
      * @param type $class_name
      */
     private function autoload($class_name) {
-        require_once Kohana::find_file("vendor/PHP-CSS-Parser/lib", str_replace("\\", "/", $class_name));
+        if($file = Kohana::find_file("vendor/PHP-CSS-Parser/lib", str_replace("\\", "/", $class_name))) {
+            require_once $file;
+        }
     }
 
     private function parse_html($content) {
