@@ -83,8 +83,8 @@ class Kohana_Styler  {
 
 
                 foreach ($this->parsed_html->find($selector) as $element) {
-
-                    $element->style .= implode("", $declaration_block->getRules());
+                    // Inline style overloads style from sheet
+                    $element->style = implode("", $declaration_block->getRules()) . $element->style;
                 }
             }
         }
